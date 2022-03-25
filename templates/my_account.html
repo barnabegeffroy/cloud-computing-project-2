@@ -12,7 +12,7 @@
                     <h6 class="mb-0">Full Name</h6>
                 </div>
                 <div class=" text-secondary">
-                    John Doe
+                    {{ user_data['name'] }}
                 </div>
             </div>
             <hr>
@@ -21,16 +21,7 @@
                     <h6 class="mb-0">Email</h6>
                 </div>
                 <div class=" text-secondary">
-                    john.doe@mail.com
-                </div>
-            </div>
-            <hr>
-            <div class="row">
-                <div class="">
-                    <h6 class="mb-0">Number of owned boards</h6>
-                </div>
-                <div class=" text-secondary">
-                    4
+                    {{ user_data['email'] }}
                 </div>
             </div>
             <hr>
@@ -39,7 +30,7 @@
                     <h6 class="mb-0">Number of boards</h6>
                 </div>
                 <div class=" text-secondary">
-                    123
+                    {{ user_data['boards']|length }}
                 </div>
             </div>
         </div>

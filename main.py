@@ -140,6 +140,7 @@ def board(id):
     id_token = request.cookies.get("token")
     claims = None
     user_data = None
+    board = None
     message = None
     status = None
     if id_token:
@@ -148,7 +149,10 @@ def board(id):
                 id_token, firebase_request_adapter)
             user_data = getUser(claims)
             board = getBoardById(id)
-            if not board:
+            if board:
+                if claims['email'] not in board['users']:
+                    return redirect(url_for('.root', message="You haven't the right to access this board", status="error"))
+            else:
                 return redirect(url_for('.root', message="This board does not exist", status="error"))
         except ValueError as exc:
             message = str(exc)

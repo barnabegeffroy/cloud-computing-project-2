@@ -10,7 +10,7 @@ html {
 main {
     display: flex;
     flex-wrap: nowrap;
-    height: 100vh;
+    height: 100vh !important;
     height: -webkit-fill-available;
     max-height: 100vh;
     overflow-x: auto;
@@ -38,4 +38,12 @@ main {
 
 .create-board {
     width: 600px;
+}
+
+.user-list {
+    width: 25rem;
+    margin-right: 0% !important;
+    margin-left: auto;
+    overflow: auto;
+    height: 80vh;
 }

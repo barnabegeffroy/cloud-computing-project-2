@@ -2,5 +2,64 @@
 {% set active_page = board.key.id %}
 {% block title %}Board - {{ board['name']}}{% endblock %}
 {% block content %}
-
+<div class="card user-list reverse">
+    <div class="card-header">
+        <strong><i class="fa fa-users me-1"></i> Users</strong>
+    </div>
+    <ul class="list-group scrollarea list-group-flush">
+        <li class="list-group-item dropdown">
+            <a class="btn btn-primary" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fa fa-plus me-1"></i>Add a user
+            </a>
+            <ul class="add-user dropdown-menu dropdown-menu-dark">
+                <form class="p-3" action="/put_user_in_board" method="post">
+                    <div class="d-flex justify-content-center">
+                        <input type="text" class="form-control" id="name" name="name"
+                            placeholder="e-mail address of the user" required>
+                        <button type="submit" class="btn btn-secondary start-50">
+                            <i class="fa fa-plus me-1"></i></button>
+                    </div>
+                </form>
+            </ul>
+        </li>
+        <li class="list-group-item"><i class="fa fa-key me-1"></i> Me - Barnabé Geffroy (barnabe.geffroy@ecomail.fr)
+            (ownner) </li>
+        <li class="list-group-item"><i class="fa fa-user me-1"></i> Barnabé Geffroy (barnabe.geffroy@ecomail.fr)
+            (ownner)
+        </li>
+        <li class="list-group-item"><i class="fa fa-user me-1"></i> Me - Barnabé Geffroy (barnabe.geffroy@ecomail.fr)
+        </li>
+        <li class="list-group-item"><i class="fa fa-user me-1"></i> Barnabé Geffroy (barnabe.geffroy@ecomail.fr)
+        </li>
+        <li class="list-group-item"><i class="fa fa-user me-1"></i> Barnabé Geffroy (barnabe.geffroy@ecomail.fr)
+        </li>
+        <li class="list-group-item"><i class="fa fa-user me-1"></i> Barnabé Geffroy (barnabe.geffroy@ecomail.fr)
+        </li>
+        <li class="list-group-item"><i class="fa fa-user me-1"></i> Barnabé Geffroy (barnabe.geffroy@ecomail.fr)
+        </li>
+        <li class="list-group-item"><i class="fa fa-user me-1"></i> Barnabé Geffroy (barnabe.geffroy@ecomail.fr)
+        </li>
+        <li class="list-group-item"><i class="fa fa-user me-1"></i> Barnabé Geffroy (barnabe.geffroy@ecomail.fr)
+        </li>
+        <li class="list-group-item"><i class="fa fa-user me-1"></i> Barnabé Geffroy (barnabe.geffroy@ecomail.fr)
+        </li>
+        <li class="list-group-item"><i class="fa fa-user me-1"></i> Barnabé Geffroy (barnabe.geffroy@ecomail.fr)
+        </li>
+        <li class="list-group-item"><i class="fa fa-user me-1"></i> Barnabé Geffroy (barnabe.geffroy@ecomail.fr)
+        </li>
+        <li class="list-group-item"><i class="fa fa-user me-1"></i> Barnabé Geffroy (barnabe.geffroy@ecomail.fr)
+        </li>
+        <li class="list-group-item"><i class="fa fa-user me-1"></i> Barnabé Geffroy (barnabe.geffroy@ecomail.fr)
+        </li>
+        <li class="list-group-item"><i class="fa fa-user me-1"></i> Barnabé Geffroy (barnabe.geffroy@ecomail.fr)
+        </li>
+        <li class="list-group-item"><i class="fa fa-user me-1"></i> Barnabé Geffroy (barnabe.geffroy@ecomail.fr)
+        </li>
+        <li class="list-group-item"><i class="fa fa-user me-1"></i> Barnabé Geffroy (barnabe.geffroy@ecomail.fr)
+        </li>
+        <li class="list-group-item"><i class="fa fa-user me-1"></i> Users</li>
+        <li class="list-group-item"><i class="fa fa-user me-1"></i> Users</li>
+        <li class="list-group-item"><i class="fa fa-user me-1"></i> Users</li>
+    </ul>
+</div>
 {% endblock %}
