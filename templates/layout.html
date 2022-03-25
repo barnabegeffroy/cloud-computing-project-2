@@ -42,12 +42,27 @@
                         Home
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a href="/add_a_board" class="nav-link {{ ' active' if 'add'==active_page else ' text-white' }}"
-                        aria-current="page">
+                <li class="nav-item dropdown">
+                    <a class="nav-link text-white"
+                        onclick="this.classList.contains('active')? this.classList.remove('active') : this.classList.add('active')"
+                        href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fa fa-plus me-1"></i>
                         Create a board
                     </a>
+                    <ul class="create-board dropdown-menu dropdown-menu-dark">
+                        <form class="p-3" action="/put_board" method="post">
+                            <div class="row">
+                                <div class="col">
+                                    <input type="text" class="form-control" id="name" name="name"
+                                        placeholder="The name of the board" required>
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="submit" class="btn btn-lg btn-secondary text-center"><i
+                                            class="fa fa-plus me-1"></i></button>
+                                </div>
+                            </div>
+                        </form>
+                    </ul>
                 </li>
                 <hr>
             </ul>

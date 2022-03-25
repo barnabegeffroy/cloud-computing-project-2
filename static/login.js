@@ -1,7 +1,7 @@
 'use strict';
 window.addEventListener('load', function () {
     var uiConfig = {
-        signInSuccessUrl: document.URL,
+        signInSuccessUrl: window.location.pathname == '/login' ? '/' : document.URL,
         signInOptions: [
             firebase.auth.EmailAuthProvider.PROVIDER_ID
         ]
