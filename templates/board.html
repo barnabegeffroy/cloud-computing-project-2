@@ -2,16 +2,19 @@
 {% set active_page = board.key.id %}
 {% block title %}Board - {{ board['name']}}{% endblock %}
 {% block content %}
-<div class="card user-list reverse">
+<div class="card user-list">
     <div class="card-header">
         <strong><i class="fa fa-users me-1"></i> Users</strong>
     </div>
     <ul class="list-group scrollarea list-group-flush">
-        <li class="list-group-item dropdown">
-            <a class="btn btn-primary" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fa fa-plus me-1"></i>Add a user
-            </a>
-            <ul class="add-user dropdown-menu dropdown-menu-dark">
+        {% for user in board['users'] %}
+        {% if user_data['email'] == user %}
+        <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#add-card-fom"
+            aria-expanded="false" aria-controls="add-card-fom">
+            <i class="fa fa-plus me-1"></i>Add a user
+        </button>
+        <div class="collapse" id="add-card-fom">
+            <div class="card card-body">
                 <form class="p-3" action="/put_user_in_board" method="post">
                     <div class="d-flex justify-content-center">
                         <input type="text" class="form-control" id="name" name="name"
@@ -20,46 +23,16 @@
                             <i class="fa fa-plus me-1"></i></button>
                     </div>
                 </form>
-            </ul>
-        </li>
-        <li class="list-group-item"><i class="fa fa-key me-1"></i> Me - Barnabé Geffroy (barnabe.geffroy@ecomail.fr)
-            (ownner) </li>
-        <li class="list-group-item"><i class="fa fa-user me-1"></i> Barnabé Geffroy (barnabe.geffroy@ecomail.fr)
-            (ownner)
-        </li>
-        <li class="list-group-item"><i class="fa fa-user me-1"></i> Me - Barnabé Geffroy (barnabe.geffroy@ecomail.fr)
-        </li>
-        <li class="list-group-item"><i class="fa fa-user me-1"></i> Barnabé Geffroy (barnabe.geffroy@ecomail.fr)
-        </li>
-        <li class="list-group-item"><i class="fa fa-user me-1"></i> Barnabé Geffroy (barnabe.geffroy@ecomail.fr)
-        </li>
-        <li class="list-group-item"><i class="fa fa-user me-1"></i> Barnabé Geffroy (barnabe.geffroy@ecomail.fr)
-        </li>
-        <li class="list-group-item"><i class="fa fa-user me-1"></i> Barnabé Geffroy (barnabe.geffroy@ecomail.fr)
-        </li>
-        <li class="list-group-item"><i class="fa fa-user me-1"></i> Barnabé Geffroy (barnabe.geffroy@ecomail.fr)
-        </li>
-        <li class="list-group-item"><i class="fa fa-user me-1"></i> Barnabé Geffroy (barnabe.geffroy@ecomail.fr)
-        </li>
-        <li class="list-group-item"><i class="fa fa-user me-1"></i> Barnabé Geffroy (barnabe.geffroy@ecomail.fr)
-        </li>
-        <li class="list-group-item"><i class="fa fa-user me-1"></i> Barnabé Geffroy (barnabe.geffroy@ecomail.fr)
-        </li>
-        <li class="list-group-item"><i class="fa fa-user me-1"></i> Barnabé Geffroy (barnabe.geffroy@ecomail.fr)
-        </li>
-        <li class="list-group-item"><i class="fa fa-user me-1"></i> Barnabé Geffroy (barnabe.geffroy@ecomail.fr)
-        </li>
-        <li class="list-group-item"><i class="fa fa-user me-1"></i> Barnabé Geffroy (barnabe.geffroy@ecomail.fr)
-        </li>
-        <li class="list-group-item"><i class="fa fa-user me-1"></i> Barnabé Geffroy (barnabe.geffroy@ecomail.fr)
-        </li>
-        <li class="list-group-item"><i class="fa fa-user me-1"></i> Barnabé Geffroy (barnabe.geffroy@ecomail.fr)
-        </li>
-        <li class="list-group-item"><i class="fa fa-user me-1"></i> Barnabé Geffroy (barnabe.geffroy@ecomail.fr)
-        </li>
-        <li class="list-group-item"><i class="fa fa-user me-1"></i> Users</li>
-        <li class="list-group-item"><i class="fa fa-user me-1"></i> Users</li>
-        <li class="list-group-item"><i class="fa fa-user me-1"></i> Users</li>
+            </div>
+        </div>
+
+        {% endif %}
+
+        <li class="list-group-item {{ ' text-primary' if user==user_data['email'] else ''}} "><i
+                class="fa {{' fa-key' if loop.index==1 else ' fa-user'}} me-1"></i>
+            {{"Me -" if user==user_data['email'] else ''}} {{ user }}
+            {{"(ownner)" if loop.index==1 else ''}} </li>
+        {% endfor %}
     </ul>
 </div>
 {% endblock %}
