@@ -129,9 +129,34 @@ def putboard():
     return redirect(url_for('.root', message=message, status=status))
 
 
-@app.route('/board/<int:id>', methods=['POST'])
+def getBoardById(id):
+    entity_key = datastore_client.key('Board', id)
+    entity = datastore_client.get(entity_key)
+    return entity
+
+
+@app.route('/board/<int:id>')
 def board(id):
-    return redirect('/')
+    id_token = request.cookies.get("token")
+    claims = None
+    user_data = None
+    message = None
+    status = None
+    if id_token:
+        try:
+            claims = google.oauth2.id_token.verify_firebase_token(
+                id_token, firebase_request_adapter)
+            user_data = getUser(claims)
+            board = getBoardById(id)
+            if not board:
+                return redirect(url_for('.root', message="This board does not exist", status="error"))
+        except ValueError as exc:
+            message = str(exc)
+            status = "error"
+    else:
+        return render_template('login.html', message="You can't access this page without being logged in", status="error")
+
+    return render_template('board.html', user_data=user_data, board=board, message=message, status=status)
 
 
 @app.errorhandler(404)
