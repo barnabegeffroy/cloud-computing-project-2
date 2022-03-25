@@ -56,8 +56,8 @@
                                     <input type="text" class="form-control" id="name" name="name"
                                         placeholder="The name of the board" required>
                                 </div>
-                                <div class="col-md-2">
-                                    <button type="submit" class="btn btn-lg btn-secondary text-center"><i
+                                <div class="col-auto">
+                                    <button type="submit" class="btn btn-secondary"><i
                                             class="fa fa-plus me-1"></i></button>
                                 </div>
                             </div>
@@ -68,13 +68,16 @@
             </ul>
             <ul class="nav nav-pills flex-column mb-auto scrollarea">
                 <div>
+                    {% for board in user_data['boards'] %}
                     <li class="nav-item">
-                        <a href="#" class="nav-link {{ ' active' if id==active_page else ' text-white' }}"
+                        <a href="/board/{{ board['id'] }}"
+                            class="nav-link {{ ' active' if board['id']==active_page else ' text-white' }}"
                             aria-current="page">
                             <i class="fa fa-sticky-note-o me-1"></i>
-                            Task board 1
+                            {{ board['name'] }}
                         </a>
                     </li>
+                    {% endfor %}
                 </div>
             </ul>
             <hr>
