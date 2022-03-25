@@ -1,0 +1,49 @@
+{% extends "layout.html" %}
+{% set active_page = "myaccount" %}
+{% block title %}My account{% endblock %}
+{% block content %}
+<div class="justify-content-center">
+
+    <h2>Your information</h2>
+    <div class="card">
+        <div class="card-body">
+            <div class="row">
+                <div class="">
+                    <h6 class="mb-0">Full Name</h6>
+                </div>
+                <div class=" text-secondary">
+                    John Doe
+                </div>
+            </div>
+            <hr>
+            <div class="row">
+                <div class="">
+                    <h6 class="mb-0">Email</h6>
+                </div>
+                <div class=" text-secondary">
+                    john.doe@mail.com
+                </div>
+            </div>
+            <hr>
+            <div class="row">
+                <div class="">
+                    <h6 class="mb-0">Number of owned boards</h6>
+                </div>
+                <div class=" text-secondary">
+                    4
+                </div>
+            </div>
+            <hr>
+            <div class="row">
+                <div class="">
+                    <h6 class="mb-0">Number of boards</h6>
+                </div>
+                <div class=" text-secondary">
+                    123
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
