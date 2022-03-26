@@ -11,15 +11,6 @@ datastore_client = datastore.Client()
 firebase_request_adapter = requests.Request()
 
 
-def getUser(claims):
-    entity_key = datastore_client.key('User', claims['email'])
-    entity = datastore_client.get(entity_key)
-    if not entity:
-        createUser(claims)
-        entity = datastore_client.get(entity_key)
-    return entity
-
-
 def createUser(claims):
     entity_key = datastore_client.key('User', claims['email'])
     entity = datastore.Entity(key=entity_key)
@@ -29,6 +20,21 @@ def createUser(claims):
         'boards': []
     })
     datastore_client.put(entity)
+
+
+def getUser(claims):
+    entity_key = datastore_client.key('User', claims['email'])
+    entity = datastore_client.get(entity_key)
+    if not entity:
+        createUser(claims)
+        entity = datastore_client.get(entity_key)
+    return entity
+
+
+def getUserByEmail(email):
+    entity_key = datastore_client.key('User', email)
+    entity = datastore_client.get(entity_key)
+    return entity
 
 
 @app.route('/', methods=['GET'])
@@ -135,14 +141,14 @@ def getBoardById(id):
     return entity
 
 
-@app.route('/board/<int:id>')
+@app.route('/board/<int:id>', methods=['GET'])
 def board(id):
     id_token = request.cookies.get("token")
     claims = None
     user_data = None
     board = None
-    message = None
-    status = None
+    message = request.args.get('message')
+    status = request.args.get('status')
     if id_token:
         try:
             claims = google.oauth2.id_token.verify_firebase_token(
@@ -161,6 +167,34 @@ def board(id):
         return render_template('login.html', message="You can't access this page without being logged in", status="error")
 
     return render_template('board.html', user_data=user_data, board=board, message=message, status=status)
+
+
+def addUserInBoard(board, email):
+    user_list = board['users']
+    user_list.append(email)
+    board.update({
+        'users': user_list
+    })
+    datastore_client.put(board)
+    addBoardToUser(email, board.key.id, board['name'])
+
+
+@app.route('/put_user_in_board', methods=['POST'])
+def putUserInBoard():
+    id = int(request.form['board-id'])
+    email = request.form['email']
+    user_entity = getUserByEmail(email)
+    board = datastore_client.get(key=datastore_client.key('Board', id))
+    if email in board['users']:
+        return redirect(url_for('.board', id=id,
+                                message="This user is already in this board", status="error"))
+    if user_entity:
+        addUserInBoard(board, email)
+        return redirect(url_for('.board', id=id,
+                                message="The user has been added", status="success"))
+    else:
+        return redirect(url_for('.board', id=id,
+                                message="The email does not match with an account", status="error"))
 
 
 @app.errorhandler(404)
