@@ -2,37 +2,165 @@
 {% set active_page = board.key.id %}
 {% block title %}Board - {{ board['name']}}{% endblock %}
 {% block content %}
-<div class="card user-list">
-    <div class="card-header">
-        <strong><i class="fa fa-users me-1"></i> Users</strong>
+<h1>Task board - {{ board['name']}} </h1>
+{% if board['users']|first == user_data['email'] %}
+<a data-bs-toggle="collapse" class="btn btn-primary" href="#edit-board-name" role="button" aria-expanded="false"
+    aria-controls="edit-board-name">
+    Change the name
+</a>
+<div class="collapse" id="edit-board-name">
+    <div class="card card-body">
+        <form class="p-3" action="/change_board_name" method="post">
+            <div class="d-flex justify-content-center">
+                <input type="hidden" class="form-control" id="board-id" name="board-id" value="{{ board.key.id }}">
+                <input type="text" class="form-control" id="name" name="name" placeholder="Name of the board"
+                    value="{{ board['name']}}" required>
+                <button type="submit" class="btn btn-secondary start-50">
+                    <i class="fa fa-plus me-1"></i></button>
+            </div>
+        </form>
     </div>
-    <ul class="list-group scrollarea list-group-flush">
-        {% for user in board['users'] %}
-        {% if user_data['email'] == user %}
-        <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#add-card-fom"
-            aria-expanded="false" aria-controls="add-card-fom">
-            <i class="fa fa-plus me-1"></i>Add a user
-        </button>
-        <div class="collapse" id="add-card-fom">
-            <div class="card card-body">
-                <form class="p-3" action="/put_user_in_board" method="post">
-                    <div class="d-flex justify-content-center">
-                        <input type="text" class="form-control" id="name" name="name"
-                            placeholder="e-mail address of the user" required>
-                        <button type="submit" class="btn btn-secondary start-50">
-                            <i class="fa fa-plus me-1"></i></button>
+</div>
+{% endif %}
+<div class="row">
+    <div class="col-9">
+        <div class="col-md-12 col-12 col-sm-12">
+            <div class="card board-block">
+                <div class="card-header">
+                    <h4><i class="fa fa-tasks me-3"></i>Task Details</h4>
+                </div>
+                <div class="card-body scrollarea">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <tbody>
+                                <tr>
+                                    <th> </th>
+                                    <th>Task Name</th>
+                                    <th>Assigned user</th>
+                                    <th>Due Date</th>
+                                    <th>Done Date</th>
+                                    <th>Action</th>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <form id="add-task" action="/add_task" method="post"><input type="hidden"
+                                                name="id" value="{{ board.key.id }}" />
+                                        </form>
+                                    </td>
+                                    <td><input class="form-control" form="add-task" type="text" id="task-name"
+                                            name="task-name" placeholder="Task name" required /></td>
+                                    <td>
+                                        <div class="row">
+                                            <div class="col-1">
+                                                <input type="checkbox" class="form-check-input"
+                                                    onChange="document.getElementById('assigned-user').disabled = !this.checked; document.getElementById('user-pick-defaut-selection').selected = true ">
+                                            </div>
+                                            <div class="col-11">
+                                                <select id="assigned-user" name="assigned-user" form="add-task"
+                                                    class="form-select" disabled>
+                                                    <option id="user-pick-defaut-selection" disabled selected value>
+                                                        Select a user</option>
+                                                    {% for user in board['users'] %}
+                                                    <option name="user-choice" value="{{ user }}">{{ user }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td id="add-task-due"><input class="form-control" form="add-task" type="date"
+                                            id="due-date" name="due-date" required />
+                                    </td>
+                                    <td></td>
+                                    <td id="add-task-submit"><input class="form-control btn btn-success" form="add-task"
+                                            type="submit" value="Add" />
+                                    </td>
+                                </tr>
+                                <tr id="task-1234">
+                                    <td class="task-checkbox">
+                                        <input type="checkbox" data-checkboxes="mygroup" class="form-check-input"
+                                            id="checkbox-1">
+                                    </td>
+                                    <td class="task-name">Ecommerce website</td>
+                                    <td class="task-assigned-user">craig@live.fr</td>
+                                    <td class="task-due-date">2018-01-20</td>
+                                    <td class="task-done-date">2018-01-20 at 12:03</td>
+                                    <td class="task-options">
+                                        <div class="row">
+                                            <div class="col">
+                                                <button class="btn btn-primary mr-1" name="edit-task"
+                                                    onclick="editTask('task-1234')" value="1234">
+                                                    <i class="fas fa-pencil-alt"></i></button>
+                                            </div>
+                                            <div class="col">
+                                                <form action="/delete_task" method="post">
+                                                    <input type="hidden" class="form-control" id="task-id"
+                                                        name="task-id" value="{{ board.key.id }}">
+                                                    <button type="submit" class="btn btn-danger">
+                                                        <i class="fa fas fa-trash"></i></button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
+    </div>
+    <div class="col-3">
+        <div class="card board-block">
+            <div class="card-header">
+                <h4><i class="fa fa-users me-1"></i> Users</h4>
+            </div>
+            <ul class="list-group scrollarea list-group-flush">
+                {% for user in board['users'] %}
+                {% if user_data['email'] == user and loop.first %}
+                <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#add-card-form"
+                    aria-expanded="false" aria-controls="add-card-form">
+                    <i class="fa fa-plus me-1"></i>Add a user
+                </button>
+                <div class="collapse" id="add-card-form">
+                    <div class="card card-body">
+                        <form class="p-3" action="/put_user_in_board" method="post">
+                            <div class="d-flex justify-content-center">
+                                <input type="hidden" class="form-control" id="board-id" name="board-id"
+                                    value="{{ board.key.id }}">
+                                <input type="email" class="form-control" id="email" name="email"
+                                    placeholder="e-mail address of the user" required>
+                                <button type="submit" class="btn btn-secondary start-50">
+                                    <i class="fa fa-plus me-1"></i></button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
 
-        {% endif %}
+                {% endif %}
 
-        <li class="list-group-item {{ ' text-primary' if user==user_data['email'] else ''}} "><i
-                class="fa {{' fa-key' if loop.index==1 else ' fa-user'}} me-1"></i>
-            {{"Me -" if user==user_data['email'] else ''}} {{ user }}
-            {{"(ownner)" if loop.index==1 else ''}} </li>
-        {% endfor %}
-    </ul>
+                <li class="list-group-item {{ ' text-primary' if user==user_data['email'] else ''}} ">
+                    <div class="row">
+                        <div class="col">
+
+                            <i class="fa {{' fa-key' if loop.first else ' fa-user'}} me-1"></i>
+                            {{"Me -" if user==user_data['email'] else ''}} {{ user }}
+                            {{"(ownner)" if loop.first else ''}}
+                        </div>
+                        {% if not loop.first and board['users']|first == user_data['email'] %}
+                        <div class="col-2">
+                            <form action="/delete_user" method="post">
+                                <input type="hidden" class="form-control" id="user-id" name="user-id"
+                                    value="{{ user }}">
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fa fas fa-trash"></i></button>
+                            </form>
+                        </div>
+                        {% endif %}
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
 </div>
 {% endblock %}

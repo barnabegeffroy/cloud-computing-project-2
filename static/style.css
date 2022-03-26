@@ -17,6 +17,10 @@ main {
     overflow-y: hidden;
 }
 
+.custom-sidebar {
+    width: 230px;
+}
+
 .dropdown-toggle {
     outline: 0;
 }
@@ -40,10 +44,10 @@ main {
     width: 600px;
 }
 
-.user-list {
-    width: 25rem;
-    margin-right: 0% !important;
-    margin-left: auto;
-    overflow: auto;
+.board-block {
     height: 80vh;
+}
+
+.table-responsive {
+    overflow-x: visible;
 }
