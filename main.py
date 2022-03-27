@@ -197,6 +197,41 @@ def putUserInBoard():
                                 message="The email does not match with an account", status="error"))
 
 
+@app.route('/add_task', methods=['POST'])
+def addTask():
+    pass
+
+
+@app.route('/check_task', methods=['POST'])
+def checkTask():
+    pass
+
+
+@app.route('/update_task', methods=['POST'])
+def updateTask():
+    pass
+
+
+@app.route('/remove_task', methods=['POST'])
+def removeTask():
+    pass
+
+
+@app.route('/rename_board', methods=['POST'])
+def renameBoard():
+    pass
+
+
+@app.route('/remove_user', methods=['POST'])
+def removeUserFromBoard():
+    pass
+
+
+@app.route('/remove_board', methods=['POST'])
+def removeBoard():
+    pass
+
+
 @app.errorhandler(404)
 def notFound(error):
     return redirect(url_for('.root', message=error, status="error"))
