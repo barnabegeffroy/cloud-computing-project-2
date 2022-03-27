@@ -19,8 +19,11 @@
             </button>
             <form action="/delete_board" method="post">
                 <input type="hidden" class="form-control" id="board-id" name="board-id" value="{{ board.key.id }}">
-                <button type="submit" class="btn btn-danger">
-                    <i class="fa fas fa-trash"></i></button>
+                <button class="btn btn-danger" {% if (board['users']|length==1) and board['tasks']|length==0 %}
+                    type='submit' {% else %} type="button"
+                    onClick='alert("You cannot remove this board because there are still tasks and non-owning users on the board")'
+                    {% endif %}>
+                    <i class=" fa fas fa-trash"></i></button>
             </form>
         </div>
     </div>
