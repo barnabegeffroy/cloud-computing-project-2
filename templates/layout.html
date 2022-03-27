@@ -100,7 +100,7 @@
                 </ul>
             </div>
         </div>
-        <div class="containter p-5 w-100{% block classes %}{% endblock %}">
+        <div class="containter px-5 w-100 {% block classes %}{% endblock %}">
             {% if message %}
             <div
                 class="message card d-flex justify-content-center text-center {{'bg-success' if status=='success' else 'bg-danger' if status=='error' else 'bg-secondary' }}">

@@ -5,26 +5,43 @@
 {% set complete_tasks_today = 0 -%}
 {% block title %}Board - {{ board['name']}}{% endblock %}
 {% block content %}
-<h1>Task board - {{ board['name']}} </h1>
-{% if board['users']|first == user_data['email'] %}
-<a data-bs-toggle="collapse" class="btn btn-primary" href="#edit-board-name" role="button" aria-expanded="false"
-    aria-controls="edit-board-name">
-    Change the name
-</a>
-<div class="collapse" id="edit-board-name">
-    <div class="card card-body">
-        <form class="p-3" action="/change_board_name" method="post">
-            <div class="d-flex justify-content-center">
-                <input type="hidden" class="form-control" id="board-id" name="board-id" value="{{ board.key.id }}">
-                <input type="text" class="form-control" id="name" name="name" placeholder="Name of the board"
-                    value="{{ board['name']}}" required>
-                <button type="submit" class="btn btn-secondary start-50">
-                    <i class="fa fa-plus me-1"></i></button>
-            </div>
-        </form>
+<div class="d-flex flex-row mb-3">
+    <div class="p-2">
+
+        <h1>Task board - {{ board['name']}} </h1>
     </div>
+    {% if board['users']|first == user_data['email'] %}
+    <div class="p-2">
+        <div class="d-flex flex-row my-2">
+            <button data-bs-toggle="collapse" class="btn btn-primary mx-1" href="#edit-board-name" role="button">
+                <i class="fas fa-pencil-alt">
+                </i>
+            </button>
+            <form action="/delete_board" method="post">
+                <input type="hidden" class="form-control" id="board-id" name="board-id" value="{{ board.key.id }}">
+                <button type="submit" class="btn btn-danger">
+                    <i class="fa fas fa-trash"></i></button>
+            </form>
+        </div>
+    </div>
+    <div class="p-2">
+        <div class="collapse" id="edit-board-name">
+            <div class="card card-body">
+                <form class="p-3" action="/change_board_name" method="post">
+                    <div class="d-flex justify-content-center">
+                        <input type="hidden" class="form-control" id="board-id" name="board-id"
+                            value="{{ board.key.id }}">
+                        <input type="text" class="form-control" id="name" name="name" placeholder="Name of the board"
+                            value="{{ board['name']}}" required>
+                        <button type="submit" class="btn btn-secondary start-50">
+                            <i class="fa fa-plus me-1"></i></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
-{% endif %}
 <div class="row">
     <div class="col-9">
         <div class="col-md-12 col-12 col-sm-12">
