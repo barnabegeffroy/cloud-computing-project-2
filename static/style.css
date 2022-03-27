@@ -31,6 +31,7 @@ main {
 
 .scrollarea {
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .message {

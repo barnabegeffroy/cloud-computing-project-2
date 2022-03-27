@@ -1,5 +1,8 @@
 {% extends "layout.html" %}
 {% set active_page = board.key.id %}
+{% set active_tasks = 0 -%}
+{% set complete_tasks = 0 -%}
+{% set complete_tasks_today = 0 -%}
 {% block title %}Board - {{ board['name']}}{% endblock %}
 {% block content %}
 <h1>Task board - {{ board['name']}} </h1>
@@ -29,10 +32,10 @@
                 <div class="card-header">
                     <h4><i class="fa fa-tasks me-3"></i>Task Details</h4>
                 </div>
-                <div class="card-body scrollarea">
+                <div class="card-body p-0 scrollarea">
                     <div class="table-responsive">
                         <table class="table table-striped">
-                            <tbody>
+                            <thead class="bg-white top-0 position-sticky">
                                 <tr>
                                     <th> </th>
                                     <th>Task Name</th>
@@ -41,7 +44,7 @@
                                     <th>Done Date</th>
                                     <th>Action</th>
                                 </tr>
-                                <tr>
+                                <tr class="bg-light">
                                     <td>
                                         <form id="add-task" action="/add_task" method="post"><input type="hidden"
                                                 name="id" value="{{ board.key.id }}" />
@@ -59,9 +62,10 @@
                                                 <select id="assigned-user" name="assigned-user" form="add-task"
                                                     class="form-select" disabled>
                                                     <option id="user-pick-defaut-selection" disabled selected value>
-                                                        Select a user</option>
+                                                        No user selected</option>
                                                     {% for user in board['users'] %}
-                                                    <option name="user-choice" value="{{ user }}">{{ user }}</option>
+                                                    <option name="user-choice" value="{{ user }}">{{ user }}
+                                                    </option>
                                                     {% endfor %}
                                                 </select>
                                             </div>
@@ -75,6 +79,8 @@
                                             type="submit" value="Add" />
                                     </td>
                                 </tr>
+                            </thead>
+                            <tbody>
                                 <tr id="task-1234">
                                     <td class="task-checkbox">
                                         <input type="checkbox" data-checkboxes="mygroup" class="form-check-input"
@@ -104,6 +110,14 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                </div>
+                <div class="card-footer border-top">
+                    <div class="row text-secondary">
+                        <div class="col">Total tasks : {{ active_tasks + complete_tasks }}</div>
+                        <div class="col">Number of active task : {{ active_tasks }}</div>
+                        <div class="col">Number of complete task : {{ complete_tasks }}</div>
+                        <div class="col">Total completed today of task : {{ complete_tasks_today }}</div>
                     </div>
                 </div>
             </div>
