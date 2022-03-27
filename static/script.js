@@ -1,10 +1,18 @@
 'use strict';
 window.addEventListener('load', function () {
+
+    var modalMessage = document.getElementById('custom-message')
+    if (modalMessage) {
+        var message = new bootstrap.Modal(modalMessage, {
+            keyboard: true
+        })
+        message.show()
+    }
+
     document.getElementById('sign-out').onclick = function () {
         firebase.auth().signOut();
         window.location.replace("/login");
     }
-
 
     firebase.auth().onAuthStateChanged(function (user) {
         if (user) {
@@ -17,7 +25,6 @@ window.addEventListener('load', function () {
         alert('Unable to log in: ' + error);
     });
 });
-
 
 function editTask(id) {
     console.log(document.querySelector('#assigned-user > :not(:first-child)'))
@@ -126,6 +133,4 @@ function editTask(id) {
     assignedUser.innerHTML = ''
 
     assignedUser.appendChild(row)
-
-
 }

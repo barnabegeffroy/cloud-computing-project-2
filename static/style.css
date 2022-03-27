@@ -34,14 +34,6 @@ main {
     overflow-x: hidden;
 }
 
-.message {
-    margin: auto !important;
-    margin-top: 5% !important;
-    width: 50%;
-    border: 5px solid grey;
-    padding: 10px;
-}
-
 .create-board {
     width: 600px;
 }
