@@ -212,7 +212,7 @@ def updateTask():
     pass
 
 
-@app.route('/remove_task', methods=['POST'])
+@app.route('/delete_task', methods=['POST'])
 def removeTask():
     pass
 
@@ -222,12 +222,12 @@ def renameBoard():
     pass
 
 
-@app.route('/remove_user', methods=['POST'])
+@app.route('/delete_user', methods=['POST'])
 def removeUserFromBoard():
     pass
 
 
-@app.route('/remove_board', methods=['POST'])
+@app.route('/delete_board', methods=['POST'])
 def removeBoard():
     pass
 
