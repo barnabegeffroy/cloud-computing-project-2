@@ -1,5 +1,6 @@
 from crypt import methods
 from datetime import datetime
+import hashlib
 import google.oauth2.id_token
 from flask import Flask, render_template, request, redirect, url_for
 from google.auth.transport import requests
@@ -212,8 +213,10 @@ def putUserInBoard():
 
 
 def addTaskToBoard(boardId, taskId):
+    print(boardId)
     entity_key = datastore_client.key('Board', boardId)
     entity = datastore_client.get(key=entity_key)
+    print(entity)
     new_task_list = entity['tasks']
     new_task_list.append(taskId)
     entity.update({
@@ -229,7 +232,7 @@ def getTaskById(id):
 
 
 def createTask(name, assignedUser, dueDate, boardId):
-    id = name + '-' + str(boardId)
+    id = hashlib.md5((name + str(boardId)).encode()).hexdigest()
     if getTaskById(id):
         return False
     else:
@@ -277,9 +280,83 @@ def checkTask():
     pass
 
 
+def updateTaskInfo(id, assignedUser, dueDate):
+    entity_key = datastore_client.key('Task', id)
+    entity = datastore_client.get(entity_key)
+    if not assignedUser:
+        assignedUser = "unassigned"
+    entity.update({
+        'assigned': assignedUser,
+        'due': dueDate,
+    })
+    datastore_client.put(entity)
+
+
+def updateTaskId(boardId, name, assignedUser, dueDate):
+    id = hashlib.md5((name + str(boardId)).encode()).hexdigest()
+    entity_key = datastore_client.key('Task', id)
+    if datastore_client.get(entity_key):
+        return None
+    entity = datastore.Entity(entity_key)
+    if not assignedUser:
+        assignedUser = "unassigned"
+    entity.update({
+        'name': name,
+        'assigned': assignedUser,
+        'due': dueDate,
+        'board': boardId,
+        'done': False,
+        'done-date': None
+    })
+    datastore_client.put(entity)
+    return id
+
+
 @app.route('/update_task', methods=['POST'])
 def updateTask():
-    pass
+    id_token = request.cookies.get("token")
+    message = None
+    status = None
+    taskId = request.form['task-id']
+    boardId = int(request.form['board-id'])
+    print(request.form['board-id'])
+    print(request.form['update-task-name'])
+    print(request.form.get('update-assigned-user'))
+    print(request.form['update-due-date'])
+    if id_token:
+        try:
+            task = getTaskById(taskId)
+            if task:
+
+                if request.form['update-task-name'] == task['name']:
+                    updateTaskInfo(taskId, request.form.get(
+                        'update-assigned-user'),  datetime.strptime(request.form['update-due-date'], '%Y-%m-%d'))
+                    message = "Task has been updated !"
+                    status = "success"
+                else:
+                    taskId = updateTaskId(boardId, request.form['update-task-name'], request.form.get(
+                        'update-assigned-user'), datetime.strptime(request.form['update-due-date'], '%Y-%m-%d'))
+                    if taskId:
+                        deleteTask(boardId,
+                                   int(request.form['task-index']))
+
+                        addTaskToBoard(boardId, taskId)
+                        message = "Vehicle has been updated !"
+                        status = "success"
+                    else:
+                        message = "The information you wish to add corresponds to an existing task"
+                        status = "error"
+            else:
+                message = "Task not found"
+                status = "error"
+
+        except ValueError as exc:
+            message = str(exc)
+            status = "error"
+    else:
+        message = "You must log in to update a vehicle"
+        status = "error"
+    return redirect(url_for('.board', id=boardId, message=message, status=status))
 
 
 def deleteTask(boardId, taskIndex):
