@@ -67,7 +67,7 @@
                                 <tr class="bg-light">
                                     <td>
                                         <form id="add-task" action="/add_task" method="post"><input type="hidden"
-                                                name="id" value="{{ board.key.id }}" />
+                                                name="board-id" value="{{ board.key.id }}" />
                                         </form>
                                     </td>
                                     <td><input class="form-control" form="add-task" type="text" id="task-name"
@@ -76,7 +76,7 @@
                                         <div class="row">
                                             <div class="col-1">
                                                 <input type="checkbox" class="form-check-input"
-                                                    onChange="document.getElementById('assigned-user').disabled = !this.checked; document.getElementById('user-pick-defaut-selection').selected = true ">
+                                                    onChange="document.getElementById('assigned-user').disabled = !this.checked;document.getElementById('assigned-user').required = this.checked; document.getElementById('user-pick-defaut-selection').selected = true ">
                                             </div>
                                             <div class="col-11">
                                                 <select id="assigned-user" name="assigned-user" form="add-task"
@@ -101,26 +101,29 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr id="task-1234">
+                                {% for task in tasks %}
+                                <tr id="task-{{task.key.id}}">
                                     <td class="task-checkbox">
                                         <input type="checkbox" data-checkboxes="mygroup" class="form-check-input"
                                             id="checkbox-1">
                                     </td>
-                                    <td class="task-name">Ecommerce website</td>
-                                    <td class="task-assigned-user">craig@live.fr</td>
-                                    <td class="task-due-date">2018-01-20</td>
-                                    <td class="task-done-date">2018-01-20 at 12:03</td>
+                                    <td class="task-name">{{task['name']}}</td>
+                                    <td class="task-assigned-user">{{task['assigned']}}</td>
+                                    <td class="task-due-date">{{task['due'].strftime('%d %b, %Y')}}</td>
+                                    <td class="task-done-date">{{task['done-date'] if task['done'] else ''}}</td>
                                     <td class="task-options">
                                         <div class="row">
                                             <div class="col">
                                                 <button class="btn btn-primary mr-1" name="edit-task"
-                                                    onclick="editTask('task-1234')" value="1234">
+                                                    onclick="editTask('task-{{task.key.id}}')">
                                                     <i class="fas fa-pencil-alt"></i></button>
                                             </div>
                                             <div class="col">
                                                 <form action="/delete_task" method="post">
-                                                    <input type="hidden" class="form-control" id="task-id"
-                                                        name="task-id" value="{{ board.key.id }}">
+                                                    <input type="hidden" class="form-control" name="task-index"
+                                                        value="{{ loop.index - 1 }}">
+                                                    <input type="hidden" class="form-control" name="board-id"
+                                                        value="{{ board.key.id }}">
                                                     <button type="submit" class="btn btn-danger">
                                                         <i class="fa fas fa-trash"></i></button>
                                                 </form>
@@ -128,6 +131,7 @@
                                         </div>
                                     </td>
                                 </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
