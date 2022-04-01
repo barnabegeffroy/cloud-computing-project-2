@@ -218,10 +218,8 @@ def putUserInBoard():
 
 
 def addTaskToBoard(boardId, taskId):
-    print(boardId)
     entity_key = datastore_client.key('Board', boardId)
     entity = datastore_client.get(key=entity_key)
-    print(entity)
     new_task_list = entity['tasks']
     new_task_list.append(taskId)
     entity.update({
@@ -423,7 +421,6 @@ def deleteTask(boardId, taskIndex):
     board = getBoardById(boardId)
     taskListKeys = board['tasks']
     taskKey = datastore_client.key('Task', taskListKeys[taskIndex])
-    print(taskKey)
     datastore_client.delete(taskKey)
     del taskListKeys[taskIndex]
     board.update({
@@ -486,9 +483,7 @@ def renameBoard():
 
 
 def deleteBoardFromUser(email, boardId):
-    print(email)
     user = getUserByEmail(email)
-    print(user)
     boardList = user['boards']
     index = boardList.index(boardId)
     del boardList[index]
@@ -528,9 +523,28 @@ def removeUserFromBoard():
     return redirect(url_for('.board', id=int(request.form['board-id']), message=message, status=status))
 
 
+def deleteBoard(id):
+    boardKey = datastore_client.key('Board', id)
+    datastore_client.delete(boardKey)
+
+
 @app.route('/delete_board', methods=['POST'])
 def removeBoard():
-    pass
+    id_token = request.cookies.get("token")
+    message = None
+    status = None
+    if id_token:
+        try:
+            deleteBoard(
+                int(request.form['board-id']))
+            deleteBoardFromUser(
+                request.form['user-email'], int(request.form['board-id']))
+            message = "The board has been removed !"
+            status = "success"
+        except ValueError as exc:
+            message = str(exc)
+            status = "error"
+    return redirect(url_for('.root', message=message, status=status))
 
 
 @app.errorhandler(404)

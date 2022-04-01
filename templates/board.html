@@ -18,7 +18,8 @@
                 </i>
             </button>
             <form action="/delete_board" method="post">
-                <input type="hidden" class="form-control" id="board-id" name="board-id" value="{{ board.key.id }}">
+                <input type="hidden" class="form-control" name="user-email" value="{{ user_data['email'] }}">
+                <input type="hidden" class="form-control" name="board-id" value="{{ board.key.id }}">
                 <button class="btn btn-danger" {% if (board['users']|length==1) and board['tasks']|length==0 %}
                     type='submit' {% else %} type="button"
                     onClick='alert("You cannot remove this board because there are still tasks and non-owning users on the board")'
@@ -107,7 +108,8 @@
                                 {% else %}
                                 {% set __ = active_tasks.append(1) %}
                                 {% endif %}
-                                <tr class="shadow-none" id="task-{{task.key.name}}">
+                                <tr class="{{ 'shadow-none' if task['done'] else 'shadow' }}"
+                                    id="task-{{task.key.name}}">
                                     <td class="task-checkbox">
                                         <form action="{{'/uncheck_task' if task['done'] else '/check_task'}}"
                                             method="post">
