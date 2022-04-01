@@ -43,6 +43,7 @@ def root():
     id_token = request.cookies.get("token")
     claims = None
     user_data = None
+    boards = []
     message = request.args.get('message')
     status = request.args.get('status')
     if id_token:
@@ -50,15 +51,24 @@ def root():
             claims = google.oauth2.id_token.verify_firebase_token(
                 id_token, firebase_request_adapter)
             user_data = getUser(claims)
+            boards = getBoardsFromUser(user_data)
         except ValueError as exc:
             message = str(exc)
             status = "error"
     else:
         return render_template('login.html')
-    return render_template('index.html', user_data=user_data, message=message, status=status)
+    return render_template('index.html', user_data=user_data, boards=boards, message=message, status=status)
 
 
-@app.route('/login')
+def getBoardsFromUser(user_data):
+    boardIds = user_data['boards']
+    boardKeys = []
+    for i in range(len(boardIds)):
+        boardKeys.append(datastore_client.key('Board', boardIds[i]))
+    return datastore_client.get_multi(boardKeys)
+
+
+@ app.route('/login')
 def login():
     id_token = request.cookies.get("token")
     if id_token:
@@ -67,11 +77,12 @@ def login():
         return render_template('login.html')
 
 
-@app.route('/my_account')
+@ app.route('/my_account')
 def myAccount():
     id_token = request.cookies.get("token")
     claims = None
     user_data = None
+    boards = []
     message = None
     status = None
     if id_token:
@@ -79,25 +90,21 @@ def myAccount():
             claims = google.oauth2.id_token.verify_firebase_token(
                 id_token, firebase_request_adapter)
             user_data = getUser(claims)
+            boards = getBoardsFromUser(user_data)
         except ValueError as exc:
             message = str(exc)
             status = "error"
     else:
         return render_template('login.html', message="You can't access this page without being logged in", status="error")
 
-    return render_template('my_account.html', user_data=user_data, message=message, status=status)
+    return render_template('my_account.html', user_data=user_data, boards=boards, message=message, status=status)
 
 
-def addBoardToUser(email, id, name):
+def addBoardToUser(email, id):
     entity_key = datastore_client.key('User', email)
     entity = datastore_client.get(key=entity_key)
-    board_info = datastore.Entity()
-    board_info.update({
-        'id': id,
-        'name': name
-    })
     new_board_list = entity['boards']
-    new_board_list.append(board_info)
+    new_board_list.append(id)
     entity.update({
         'boards': new_board_list
     })
@@ -109,15 +116,14 @@ def createBoard(name, email):
     entity = datastore.Entity(key=entity_key)
     entity.update({
         'name': name,
-        'creator': email,
         'tasks': [],
         'users': [email]
     })
     datastore_client.put(entity)
-    addBoardToUser(email, entity.key.id, name)
+    addBoardToUser(email, entity.key.id)
 
 
-@app.route('/put_board', methods=['POST'])
+@ app.route('/put_board', methods=['POST'])
 def putboard():
     id_token = request.cookies.get("token")
     message = None
@@ -144,7 +150,6 @@ def getBoardById(id):
 
 def getTasksFromBoard(board):
     taskIds = board['tasks']
-    taskKeys = []
     list = []
     for i in range(len(taskIds)):
         list.append(datastore_client.get(
@@ -152,11 +157,12 @@ def getTasksFromBoard(board):
     return list
 
 
-@app.route('/board/<int:id>', methods=['GET'])
+@ app.route('/board/<int:id>', methods=['GET'])
 def board(id):
     id_token = request.cookies.get("token")
     claims = None
     user_data = None
+    boards = []
     board = None
     tasks = None
     message = request.args.get('message')
@@ -166,6 +172,7 @@ def board(id):
             claims = google.oauth2.id_token.verify_firebase_token(
                 id_token, firebase_request_adapter)
             user_data = getUser(claims)
+            boards = getBoardsFromUser(user_data)
             board = getBoardById(id)
             if board:
                 if claims['email'] not in board['users']:
@@ -179,7 +186,7 @@ def board(id):
     else:
         return render_template('login.html', message="You can't access this page without being logged in", status="error")
 
-    return render_template('board.html', user_data=user_data, board=board, tasks=tasks, today=datetime.today().strftime('%Y-%m-%d'), message=message, status=status)
+    return render_template('board.html', user_data=user_data, boards=boards, board=board, tasks=tasks, today=datetime.today().strftime('%Y-%m-%d'), message=message, status=status)
 
 
 def addUserInBoard(board, email):
@@ -189,10 +196,10 @@ def addUserInBoard(board, email):
         'users': user_list
     })
     datastore_client.put(board)
-    addBoardToUser(email, board.key.id, board['name'])
+    addBoardToUser(email, board.key.id)
 
 
-@app.route('/put_user_in_board', methods=['POST'])
+@ app.route('/put_user_in_board', methods=['POST'])
 def putUserInBoard():
     id = int(request.form['board-id'])
     email = request.form['email']
@@ -251,7 +258,7 @@ def createTask(name, assignedUser, dueDate, boardId):
         return True
 
 
-@app.route('/add_task', methods=['POST'])
+@ app.route('/add_task', methods=['POST'])
 def addTask():
     id_token = request.cookies.get("token")
     message = None
@@ -281,7 +288,7 @@ def putTaskDone(task):
     datastore_client.put(task)
 
 
-@app.route('/check_task', methods=['POST'])
+@ app.route('/check_task', methods=['POST'])
 def checkTask():
     id_token = request.cookies.get("token")
     message = None
@@ -313,7 +320,7 @@ def putTaskUndone(task):
     datastore_client.put(task)
 
 
-@app.route('/uncheck_task', methods=['POST'])
+@ app.route('/uncheck_task', methods=['POST'])
 def uncheckTask():
     id_token = request.cookies.get("token")
     message = None
@@ -369,7 +376,7 @@ def updateTaskId(boardId, name, assignedUser, dueDate):
     return id
 
 
-@app.route('/update_task', methods=['POST'])
+@ app.route('/update_task', methods=['POST'])
 def updateTask():
     id_token = request.cookies.get("token")
     message = None
@@ -429,7 +436,7 @@ def deleteTask(boardId, taskIndex):
     datastore_client.put(board)
 
 
-@app.route('/delete_task', methods=['POST'])
+@ app.route('/delete_task', methods=['POST'])
 def removeTask():
     id_token = request.cookies.get("token")
     message = None
@@ -452,9 +459,47 @@ def renameBoard():
     pass
 
 
+def deleteBoardFromUser(email, boardId):
+    print(email)
+    user = getUserByEmail(email)
+    print(user)
+    boardList = user['boards']
+    index = boardList.index(boardId)
+    del boardList[index]
+    user.update({
+        'boards': boardList
+    })
+    datastore_client.put(user)
+
+
+def deleteUserFromBoard(boardId, index):
+    board = getBoardById(boardId)
+    userListKeys = board['users']
+    del userListKeys[index]
+    board.update({
+        'users': userListKeys
+    })
+    datastore_client.put(board)
+
+
 @app.route('/delete_user', methods=['POST'])
 def removeUserFromBoard():
-    pass
+    id_token = request.cookies.get("token")
+    message = None
+    status = None
+    if id_token:
+        try:
+            deleteUserFromBoard(
+                int(request.form['board-id']), int(request.form['user-index']))
+            deleteBoardFromUser(
+                request.form['user-email'], int(request.form['board-id']))
+            message = "The user has been removed !"
+            status = "success"
+        except ValueError as exc:
+            message = str(exc)
+            status = "error"
+
+    return redirect(url_for('.board', id=int(request.form['board-id']), message=message, status=status))
 
 
 @app.route('/delete_board', methods=['POST'])

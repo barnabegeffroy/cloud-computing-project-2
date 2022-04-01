@@ -213,8 +213,10 @@
                         {% if not loop.first and board['users']|first == user_data['email'] %}
                         <div class="col-2">
                             <form action="/delete_user" method="post">
-                                <input type="hidden" class="form-control" id="user-id" name="user-id"
-                                    value="{{ user }}">
+                                <input type="hidden" class="form-control" name="board-id" value="{{ board.key.id }}">
+                                <input type="hidden" class="form-control" name="user-index"
+                                    value="{{ loop.index - 1 }}">
+                                <input type="hidden" class="form-control" name="user-email" value="{{ user }}">
                                 <button type="submit" class="btn btn-danger">
                                     <i class="fa fas fa-trash"></i></button>
                             </form>

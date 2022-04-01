@@ -70,13 +70,13 @@
             </ul>
             <ul class="nav nav-pills flex-column mb-auto scrollarea">
                 <div>
-                    {% for board in user_data['boards'] %}
+                    {% for boardItem in boards %}
                     <li class="nav-item">
-                        <a href="/board/{{ board['id'] }}"
-                            class="nav-link {{ ' active' if board['id']==active_page else ' text-white' }}"
+                        <a href="/board/{{ boardItem.key.id }}"
+                            class="nav-link {{ ' active' if boardItem.key.id==active_page else ' text-white' }}"
                             aria-current="page">
                             <i class="fa fa-clipboard-list me-1"></i>
-                            {{ board['name'] }}
+                            {{ boardItem['name'] }}
                         </a>
                     </li>
                     {% endfor %}
