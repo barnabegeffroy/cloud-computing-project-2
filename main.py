@@ -273,9 +273,68 @@ def addTask():
     return redirect(url_for('.board', id=int(request.form['board-id']), message=message, status=status))
 
 
+def putTaskDone(task):
+    task.update({
+        'done': True,
+        'done-date': datetime.today(),
+    })
+    datastore_client.put(task)
+
+
 @app.route('/check_task', methods=['POST'])
 def checkTask():
-    pass
+    id_token = request.cookies.get("token")
+    message = None
+    status = None
+    taskId = request.form['task-id']
+    boardId = int(request.form['board-id'])
+    if id_token:
+        try:
+            task = getTaskById(taskId)
+            if task:
+                putTaskDone(task)
+            else:
+                message = "Task not found"
+                status = "error"
+        except ValueError as exc:
+            message = str(exc)
+            status = "error"
+    else:
+        message = "You must log in to update a vehicle"
+        status = "error"
+    return redirect(url_for('.board', id=boardId, message=message, status=status))
+
+
+def putTaskUndone(task):
+    task.update({
+        'done': False,
+        'done-date': None,
+    })
+    datastore_client.put(task)
+
+
+@app.route('/uncheck_task', methods=['POST'])
+def uncheckTask():
+    id_token = request.cookies.get("token")
+    message = None
+    status = None
+    taskId = request.form['task-id']
+    boardId = int(request.form['board-id'])
+    if id_token:
+        try:
+            task = getTaskById(taskId)
+            if task:
+                putTaskUndone(task)
+            else:
+                message = "Task not found"
+                status = "error"
+        except ValueError as exc:
+            message = str(exc)
+            status = "error"
+    else:
+        message = "You must log in to update a vehicle"
+        status = "error"
+    return redirect(url_for('.board', id=boardId, message=message, status=status))
 
 
 def updateTaskInfo(id, assignedUser, dueDate):

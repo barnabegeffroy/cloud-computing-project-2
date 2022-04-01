@@ -66,7 +66,7 @@ function editTask(id, boardId, index) {
     nameInput.setAttribute("class", "form-control")
     nameInput.setAttribute("form", formId)
     nameInput.setAttribute("name", "update-task-name")
-    nameInput.setAttribute("value", name.innerHTML)
+    nameInput.setAttribute("value", name.innerText)
     nameInput.setAttribute("placeholder", "Task name");
     nameInput.setAttribute("required", "");
     name.innerHTML = ''
@@ -78,7 +78,7 @@ function editTask(id, boardId, index) {
     dueDateInput.setAttribute("class", "form-control")
     dueDateInput.setAttribute("form", formId)
     dueDateInput.setAttribute("name", "update-due-date")
-    let date = new Date(dueDate.innerHTML)
+    let date = new Date(dueDate.innerText)
     dueDateInput.setAttribute("value", date.toISOString().substring(0, 10))
     dueDateInput.setAttribute("required", "");
     dueDate.innerHTML = ''
@@ -95,12 +95,10 @@ function editTask(id, boardId, index) {
 
     // creation assigned user selection
 
-    var row = document.createElement("div")
-    row.setAttribute("class", "row")
+    var group = document.createElement("div")
+    group.setAttribute("class", "input-group")
     var col1 = document.createElement("div")
-    col1.setAttribute("class", "col-1")
-    var col11 = document.createElement("div")
-    col11.setAttribute("class", "col-11")
+    col1.setAttribute("class", "input-group-text")
 
     var checkboxUser = document.createElement("input")
     checkboxUser.setAttribute("type", "checkbox")
@@ -136,12 +134,10 @@ function editTask(id, boardId, index) {
         selectUser.appendChild(newUser)
     });
 
-    col11.appendChild(selectUser)
-
-    row.appendChild(col1)
-    row.appendChild(col11)
+    group.appendChild(col1)
+    group.appendChild(selectUser)
 
     assignedUser.innerHTML = ''
 
-    assignedUser.appendChild(row)
+    assignedUser.appendChild(group)
 }
