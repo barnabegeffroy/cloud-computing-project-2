@@ -149,8 +149,6 @@ def getTasksFromBoard(board):
     for i in range(len(taskIds)):
         list.append(datastore_client.get(
             datastore_client.key('Task', taskIds[i])))
-    #     taskKeys.append(datastore_client.key('Task', taskIds[i]))
-    # list = datastore_client.get_multi(taskKeys)
     return list
 
 
