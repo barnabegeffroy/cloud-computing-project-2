@@ -1,8 +1,8 @@
 {% extends "layout.html" %}
 {% set active_page = board.key.id %}
-{% set active_tasks = 0 -%}
-{% set complete_tasks = 0 -%}
-{% set complete_tasks_today = 0 -%}
+{% set active_tasks = [] -%}
+{% set complete_tasks = [] -%}
+{% set complete_tasks_today = [] -%}
 {% block title %}Board - {{ board['name']}}{% endblock %}
 {% block content %}
 <div class="d-flex flex-row mb-3">
@@ -101,9 +101,12 @@
                             <tbody>
                                 {% for task in tasks %}
                                 {% if task['done'] %}
-                                {% set active_tasks = active_tasks + 1 %}
+                                {% set __ = complete_tasks.append(1) %}
+                                {% if task['done-date'].strftime('%Y-%m-%d')== today %}
+                                {% set __ = complete_tasks_today.append(1) %}
+                                {% endif %}
                                 {% else %}
-                                {% set complete_tasks = complete_tasks + 1 %}
+                                {% set __ = active_tasks.append(1) %}
                                 {% endif %}
                                 <tr class="shadow-none" id="task-{{task.key.name}}">
                                     <td class="task-checkbox">
@@ -161,10 +164,10 @@
                 </div>
                 <div class="card-footer border-top">
                     <div class="row text-secondary">
-                        <div class="col">Total tasks : {{ active_tasks + complete_tasks }}</div>
-                        <div class="col">Number of active task : {{ active_tasks }}</div>
-                        <div class="col">Number of complete task : {{ complete_tasks }}</div>
-                        <div class="col">Total completed today of task : {{ complete_tasks_today }}</div>
+                        <div class="col">Total tasks : {{ tasks|length }}</div>
+                        <div class="col">Number of active task : {{ active_tasks|length }}</div>
+                        <div class="col">Number of complete task : {{ complete_tasks|length }}</div>
+                        <div class="col">Total completed today of task : {{ complete_tasks_today|length }}</div>
                     </div>
                 </div>
             </div>

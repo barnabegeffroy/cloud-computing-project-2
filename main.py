@@ -179,7 +179,7 @@ def board(id):
     else:
         return render_template('login.html', message="You can't access this page without being logged in", status="error")
 
-    return render_template('board.html', user_data=user_data, board=board, tasks=tasks, message=message, status=status)
+    return render_template('board.html', user_data=user_data, board=board, tasks=tasks, today=datetime.today().strftime('%Y-%m-%d'), message=message, status=status)
 
 
 def addUserInBoard(board, email):
