@@ -32,9 +32,8 @@
             <div class="card card-body">
                 <form class="p-3" action="/rename_board" method="post">
                     <div class="d-flex justify-content-center">
-                        <input type="hidden" class="form-control" id="board-id" name="board-id"
-                            value="{{ board.key.id }}">
-                        <input type="text" class="form-control" id="name" name="name" placeholder="Name of the board"
+                        <input type="hidden" class="form-control" name="board-id" value="{{ board.key.id }}">
+                        <input type="text" class="form-control" name="board-name" placeholder="Name of the board"
                             value="{{ board['name']}}" required>
                         <button type="submit" class="btn btn-primary start-50">
                             <i class="fa fa-check me-1"></i></button>

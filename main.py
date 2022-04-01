@@ -383,10 +383,6 @@ def updateTask():
     status = None
     taskId = request.form['task-id']
     boardId = int(request.form['board-id'])
-    print(request.form['board-id'])
-    print(request.form['update-task-name'])
-    print(request.form.get('update-assigned-user'))
-    print(request.form['update-due-date'])
     if id_token:
         try:
             task = getTaskById(taskId)
@@ -454,9 +450,39 @@ def removeTask():
     return redirect(url_for('.board', id=int(request.form['board-id']), message=message, status=status))
 
 
+def updateBoardName(board, name):
+    board.update({
+        'name': name
+    })
+    datastore_client.put(board)
+
+
 @app.route('/rename_board', methods=['POST'])
 def renameBoard():
-    pass
+    id_token = request.cookies.get("token")
+    message = None
+    status = None
+    boardId = int(request.form['board-id'])
+    boardName = request.form['board-name']
+    if id_token:
+        try:
+            board = getBoardById(boardId)
+            if board:
+                if boardName != board['name']:
+                    updateBoardName(board, boardName)
+                    message = "Board has been renamed !"
+                    status = "success"
+            else:
+                message = "Board not found"
+                status = "error"
+
+        except ValueError as exc:
+            message = str(exc)
+            status = "error"
+    else:
+        message = "You must log in to update a vehicle"
+        status = "error"
+    return redirect(url_for('.board', id=boardId, message=message, status=status))
 
 
 def deleteBoardFromUser(email, boardId):
