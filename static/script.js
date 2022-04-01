@@ -111,7 +111,7 @@ function editTask(id, boardId, index) {
     selectUser.setAttribute("name", "update-assigned-user")
     selectUser.setAttribute("form", formId)
     selectUser.setAttribute("class", "form-select")
-    if (assignedUser.innerHTML == "unassigned")
+    if (assignedUser.innerText == "unassigned")
         selectUser.setAttribute("disabled", "");
 
     var defaultOption = document.createElement("option")

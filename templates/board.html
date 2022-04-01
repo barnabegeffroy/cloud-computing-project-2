@@ -108,7 +108,7 @@
                                 {% else %}
                                 {% set __ = active_tasks.append(1) %}
                                 {% endif %}
-                                <tr class="{{ 'shadow-none' if task['done'] else 'shadow' }}"
+                                <tr class="{{ 'shadow-none' if task['done'] else 'shadow' }} {{ 'to-assign' if task['to-assign'] else '' }}"
                                     id="task-{{task.key.name}}">
                                     <td class="task-checkbox">
                                         <form action="{{'/uncheck_task' if task['done'] else '/check_task'}}"
@@ -139,10 +139,11 @@
                                     <td class="task-options">
                                         <div class="row">
                                             <div class="col">
-                                                <button class="btn btn-primary mr-1" name="edit-task" onclick="{{ "
-                                                    alert('You cannot edit an task which is completed')" if task['done']
-                                                    else "editTask('{{ task.key.name }}', {{ board.key.id }}, {{ loop.index - 1 }})"
-                                                    }} ">
+                                                <button class="btn btn-primary mr-1" name="edit-task" {% if task['done']
+                                                    %} onclick="alert('You cannot edit an task which is completed')" {%
+                                                    else %}
+                                                    onclick="editTask('{{ task.key.name }}', {{ board.key.id }}, {{ loop.index - 1 }})"
+                                                    {% endif %}>
                                                     <i class=" fas fa-pencil-alt"></i></button>
                                             </div>
                                             <div class="col">
