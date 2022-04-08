@@ -9,16 +9,36 @@ window.addEventListener('load', function () {
         message.show()
     }
 
-    document.getElementById('sign-out').onclick = function () {
-        firebase.auth().signOut();
-        document.cookie = "token=" + ";path=/";
-        window.location.replace("/login");
+    var signOut = document.getElementById('sign-out')
+
+    if (signOut) {
+        signOut.onclick = function () {
+            firebase.auth().signOut();
+            document.cookie = "token=" + ";path=/";
+            window.location.replace("/login");
+        }
     }
+
+    var uiConfig = {
+        signInSuccessUrl: window.location.pathname == '/login' ? '/' : document.URL,
+        signInOptions: [
+            firebase.auth.EmailAuthProvider.PROVIDER_ID
+        ]
+    };
+
+    var authContainer = this.document.getElementById('firebase-auth-container')
+
 
     firebase.auth().onAuthStateChanged(function (user) {
         if (user) {
-            document.cookie = "token=" + token + ";path=/";
+            user.getIdToken().then(function (token) {
+                document.cookie = "token=" + token + ";path=/";
+            });
         } else {
+            if (authContainer) {
+                var ui = new firebaseui.auth.AuthUI(firebase.auth());
+                ui.start('#firebase-auth-container', uiConfig);
+            }
             document.cookie = "token=" + ";path=/";
         }
     }, function (error) {
