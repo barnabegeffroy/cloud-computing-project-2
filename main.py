@@ -245,7 +245,6 @@ def createTask(name, assignedUser, dueDate, boardId):
         entity.update({
             'name': name,
             'assigned': assignedUser,
-            'to-assign': False,
             'due': dueDate,
             'board': boardId,
             'done': False,
@@ -342,18 +341,17 @@ def uncheckTask():
     return redirect(url_for('.board', id=boardId, message=message, status=status))
 
 
-def updateTaskInfo(id, assignedUser, toAssign, dueDate):
+def updateTaskInfo(id, assignedUser, dueDate):
     entity_key = datastore_client.key('Task', id)
     entity = datastore_client.get(entity_key)
     entity.update({
         'assigned': assignedUser,
-        'to-assign': toAssign,
         'due': dueDate,
     })
     datastore_client.put(entity)
 
 
-def updateTaskId(boardId, name, assignedUser, toAssign, dueDate):
+def updateTaskId(boardId, name, assignedUser, dueDate):
     id = hashlib.md5((name + str(boardId)).encode()).hexdigest()
     entity_key = datastore_client.key('Task', id)
     if datastore_client.get(entity_key):
@@ -362,7 +360,6 @@ def updateTaskId(boardId, name, assignedUser, toAssign, dueDate):
     entity.update({
         'name': name,
         'assigned': assignedUser,
-        'to-assign': toAssign,
         'due': dueDate,
         'board': boardId,
         'done': False,
@@ -386,17 +383,14 @@ def updateTask():
                 assignedUser = request.form.get('update-assigned-user')
                 if not assignedUser:
                     assignedUser = "unassigned"
-                toAssign = False
-                if assignedUser != task['assigned']:
-                    toAssign = True
                 if request.form['update-task-name'] == task['name']:
-                    updateTaskInfo(taskId, assignedUser, toAssign,  datetime.strptime(
+                    updateTaskInfo(taskId, assignedUser,  datetime.strptime(
                         request.form['update-due-date'], '%Y-%m-%d'))
                     message = "Task has been updated !"
                     status = "success"
                 else:
                     taskId = updateTaskId(boardId, request.form['update-task-name'], assignedUser,
-                                          toAssign, datetime.strptime(request.form['update-due-date'], '%Y-%m-%d'))
+                                          datetime.strptime(request.form['update-due-date'], '%Y-%m-%d'))
                     if taskId:
                         deleteTask(boardId,
                                    int(request.form['task-index']))

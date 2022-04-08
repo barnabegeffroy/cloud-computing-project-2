@@ -100,6 +100,7 @@
                             </thead>
                             <tbody>
                                 {% for task in tasks %}
+                                {% set isNotAssign = 'unassigned' == task['assigned'] %}
                                 {% if task['done'] %}
                                 {% set __ = complete_tasks.append(1) %}
                                 {% if task['done-date'].strftime('%Y-%m-%d')== today %}
@@ -108,7 +109,7 @@
                                 {% else %}
                                 {% set __ = active_tasks.append(1) %}
                                 {% endif %}
-                                <tr class="{{ 'shadow-none' if task['done'] else 'shadow' }} {{ 'to-assign' if task['to-assign'] else '' }}"
+                                <tr class="{{ 'shadow-none' if task['done'] else 'shadow' }} {{ 'to-assign' if isNotAssign else '' }}"
                                     id="task-{{task.key.name}}">
                                     <td class="task-checkbox">
                                         <form action="{{'/uncheck_task' if task['done'] else '/check_task'}}"
