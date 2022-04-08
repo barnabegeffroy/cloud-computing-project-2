@@ -10,7 +10,7 @@
 
         <h1>Task board - {{ board['name']}} </h1>
     </div>
-    {% if board['users']|first == user_data['email'] %}
+    {% if board['users']|first == user_data.key.name %}
     <div class="p-2">
         <div class="d-flex flex-row my-2">
             <button data-bs-toggle="collapse" class="btn btn-primary mx-1" href="#edit-board-name" role="button">
@@ -18,7 +18,7 @@
                 </i>
             </button>
             <form action="/delete_board" method="post">
-                <input type="hidden" class="form-control" name="user-email" value="{{ user_data['email'] }}">
+                <input type="hidden" class="form-control" name="user-email" value="{{ user_data.key.name }}">
                 <input type="hidden" class="form-control" name="board-id" value="{{ board.key.id }}">
                 <button class="btn btn-danger" {% if (board['users']|length==1) and board['tasks']|length==0 %}
                     type='submit' {% else %} type="button"
@@ -182,7 +182,7 @@
             </div>
             <ul class="list-group scrollarea list-group-flush">
                 {% for user in board['users'] %}
-                {% if user_data['email'] == user and loop.first %}
+                {% if user_data.key.name == user and loop.first %}
                 <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#add-card-form"
                     aria-expanded="false" aria-controls="add-card-form">
                     <i class="fa fa-plus me-1"></i>Add a user
@@ -204,15 +204,15 @@
 
                 {% endif %}
 
-                <li class="list-group-item {{ ' text-primary' if user==user_data['email'] else ''}} ">
+                <li class="list-group-item {{ ' text-primary' if user==user_data.key.name else ''}} ">
                     <div class="row">
                         <div class="col">
 
                             <i class="fa {{' fa-key' if loop.first else ' fa-user'}} me-1"></i>
-                            {{"Me -" if user==user_data['email'] else ''}} {{ user }}
+                            {{"Me -" if user==user_data.key.name else ''}} {{ user }}
                             {{"(ownner)" if loop.first else ''}}
                         </div>
-                        {% if not loop.first and board['users']|first == user_data['email'] %}
+                        {% if not loop.first and board['users']|first == user_data.key.name %}
                         <div class="col-2">
                             <form action="/delete_user" method="post">
                                 <input type="hidden" class="form-control" name="board-id" value="{{ board.key.id }}">
