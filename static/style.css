@@ -55,3 +55,9 @@ main {
 .to-assign{
     background-color: lightcoral;
 }
+
+.home{
+    position: relative;
+    top: 30%;
+    text-align: center;
+}

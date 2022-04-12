@@ -388,7 +388,6 @@ def updateTask():
     status = None
     taskId = request.form['task-id']
     boardId = int(request.form['board-id'])
-    print(boardId)
     if id_token:
         try:
             task = getTaskById(taskId)
