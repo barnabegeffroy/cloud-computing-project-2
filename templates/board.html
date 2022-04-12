@@ -103,7 +103,7 @@
                                 {% set isNotAssign = 'unassigned' == task['assigned'] %}
                                 {% if task['done'] %}
                                 {% set __ = complete_tasks.append(1) %}
-                                {% if task['done-date'].strftime('%Y-%m-%d')== today %}
+                                {% if task['done'].strftime('%Y-%m-%d')== today %}
                                 {% set __ = complete_tasks_today.append(1) %}
                                 {% endif %}
                                 {% else %}
@@ -134,7 +134,7 @@
                                     <td
                                         class="task-due-date {{'text-decoration-line-through text-muted' if task['done'] else ''}}">
                                         {{ task['due'].strftime('%d %b, %Y') }}</td>
-                                    <td class="task-done-date">{{ task['done-date'].strftime('%-d %b, %Y at %-I:%M %p')
+                                    <td class="task-done-date">{{ task['done'].strftime('%-d %b, %Y at %-I:%M %p')
                                         if
                                         task['done'] else '' }}</td>
                                     <td class="task-options">
@@ -143,7 +143,7 @@
                                                 <button class="btn btn-primary mr-1" name="edit-task" {% if task['done']
                                                     %} onclick="alert('You cannot edit an task which is completed')" {%
                                                     else %}
-                                                    onclick="editTask('{{ task.key.name }}', {{ board.key.id }}, {{ loop.index - 1 }})"
+                                                    onclick="editTask('{{ task.key.name }}', '{{ board.key.id }}', {{ loop.index - 1 }})"
                                                     {% endif %}>
                                                     <i class=" fas fa-pencil-alt"></i></button>
                                             </div>

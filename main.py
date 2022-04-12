@@ -1,6 +1,7 @@
 from crypt import methods
 from datetime import datetime
 import hashlib
+import random
 import google.oauth2.id_token
 from flask import Flask, render_template, request, redirect, url_for
 from google.auth.transport import requests
@@ -12,29 +13,21 @@ datastore_client = datastore.Client()
 firebase_request_adapter = requests.Request()
 
 
-def createUser(claims):
-    entity_key = datastore_client.key('User', claims['email'])
-    entity = datastore.Entity(key=entity_key)
-    entity.update({
-        'name': claims['name'],
-        'boards': []
-    })
-    datastore_client.put(entity)
-
-
 def getUser(claims):
     entity_key = datastore_client.key('User', claims['email'])
     entity = datastore_client.get(entity_key)
     if not entity:
-        createUser(claims)
-        entity = datastore_client.get(entity_key)
+        entity = datastore.Entity(key=entity_key)
+        entity.update({
+            'name': claims['name'],
+            'boards': []
+        })
+        datastore_client.put(entity)
     return entity
 
 
 def getUserByEmail(email):
-    entity_key = datastore_client.key('User', email)
-    entity = datastore_client.get(entity_key)
-    return entity
+    return datastore_client.get(datastore_client.key('User', email))
 
 
 @app.route('/', methods=['GET'])
@@ -99,27 +92,28 @@ def myAccount():
     return render_template('my_account.html', user_data=user_data, boards=boards, message=message, status=status)
 
 
-def addBoardToUser(email, id):
-    entity_key = datastore_client.key('User', email)
-    entity = datastore_client.get(key=entity_key)
-    new_board_list = entity['boards']
-    new_board_list.append(id)
-    entity.update({
-        'boards': new_board_list
-    })
-    datastore_client.put(entity)
-
-
 def createBoard(name, email):
-    entity_key = datastore_client.key('Board')
-    entity = datastore.Entity(key=entity_key)
-    entity.update({
+    # create board
+    id = random.getrandbits(63)
+    board_key = datastore_client.key('Board', id)
+    board = datastore.Entity(key=board_key)
+    board.update({
         'name': name,
         'tasks': [],
         'users': [email]
     })
-    datastore_client.put(entity)
-    addBoardToUser(email, entity.key.id)
+    # add board id to user
+    user = getUserByEmail(email)
+    new_board_list = user['boards']
+    new_board_list.append(id)
+    user.update({
+        'boards': new_board_list
+    })
+    transaction = datastore_client.transaction()
+    with transaction:
+        transaction.put(board)
+        transaction.put(user)
+    return id
 
 
 @app.route('/put_board', methods=['POST'])
@@ -131,20 +125,18 @@ def putboard():
         try:
             claims = google.oauth2.id_token.verify_firebase_token(
                 id_token, firebase_request_adapter)
-            createBoard(request.form['name'], claims['email'])
+            boardId = createBoard(request.form['name'], claims['email'])
             message = "Your board has been created !"
             status = "success"
         except ValueError as exc:
             message = str(exc)
             status = "error"
 
-    return redirect(url_for('.root', message=message, status=status))
+    return redirect(url_for('.board', id=boardId, message=message, status=status))
 
 
 def getBoardById(id):
-    entity_key = datastore_client.key('Board', id)
-    entity = datastore_client.get(entity_key)
-    return entity
+    return datastore_client.get(datastore_client.key('Board', id))
 
 
 def getTasksFromBoard(board):
@@ -178,7 +170,7 @@ def board(id):
                     return redirect(url_for('.root', message="You haven't the right to access this board", status="error"))
                 tasks = getTasksFromBoard(board)
             else:
-                return redirect(url_for('.root', message="This board does not exist", status="error"))
+                return redirect(url_for('.root', message=("This board does not exist:" + str(id)), status="error"))
         except ValueError as exc:
             message = str(exc)
             status = "error"
@@ -188,27 +180,36 @@ def board(id):
     return render_template('board.html', user_data=user_data, boards=boards, board=board, tasks=tasks, today=datetime.today().strftime('%Y-%m-%d'), message=message, status=status)
 
 
-def addUserInBoard(board, email):
+def addUserInBoard(board, user):
+    # update board
     user_list = board['users']
-    user_list.append(email)
+    user_list.append(user.key.name)
     board.update({
         'users': user_list
     })
-    datastore_client.put(board)
-    addBoardToUser(email, board.key.id)
+    # update user
+    new_board_list = user['boards']
+    new_board_list.append(board.key.id)
+    user.update({
+        'boards': new_board_list
+    })
+    transaction = datastore_client.transaction()
+    with transaction:
+        transaction.put(board)
+        transaction.put(user)
 
 
 @app.route('/put_user_in_board', methods=['POST'])
 def putUserInBoard():
     id = int(request.form['board-id'])
     email = request.form['email']
-    user_entity = getUserByEmail(email)
-    board = datastore_client.get(key=datastore_client.key('Board', id))
+    board = getBoardById(id)
     if email in board['users']:
         return redirect(url_for('.board', id=id,
                                 message="This user is already in this board", status="error"))
-    if user_entity:
-        addUserInBoard(board, email)
+    user = getUserByEmail(email)
+    if user:
+        addUserInBoard(board, user)
         return redirect(url_for('.board', id=id,
                                 message="The user has been added", status="success"))
     else:
@@ -216,21 +217,8 @@ def putUserInBoard():
                                 message="The email does not match with an account", status="error"))
 
 
-def addTaskToBoard(boardId, taskId):
-    entity_key = datastore_client.key('Board', boardId)
-    entity = datastore_client.get(key=entity_key)
-    new_task_list = entity['tasks']
-    new_task_list.append(taskId)
-    entity.update({
-        'tasks': new_task_list
-    })
-    datastore_client.put(entity)
-
-
 def getTaskById(id):
-    entity_key = datastore_client.key('Task', id)
-    entity = datastore_client.get(entity_key)
-    return entity
+    return datastore_client.get(datastore_client.key('Task', id))
 
 
 def createTask(name, assignedUser, dueDate, boardId):
@@ -238,20 +226,30 @@ def createTask(name, assignedUser, dueDate, boardId):
     if getTaskById(id):
         return False
     else:
-        entity_key = datastore_client.key('Task', id)
-        entity = datastore.Entity(key=entity_key)
+        # create task entity
+        task_key = datastore_client.key('Task', id)
+        task = datastore.Entity(key=task_key)
         if not assignedUser:
             assignedUser = "unassigned"
-        entity.update({
+        task.update({
             'name': name,
             'assigned': assignedUser,
             'due': dueDate,
             'board': boardId,
-            'done': False,
-            'done-date': None
+            'done': None
         })
-        datastore_client.put(entity)
-        addTaskToBoard(boardId, id)
+        # add task id to board
+        board = getBoardById(boardId)
+        new_task_list = board['tasks']
+        new_task_list.append(id)
+        board.update({
+            'tasks': new_task_list
+        })
+        # put in datastore
+        transaction = datastore_client.transaction()
+        with transaction:
+            transaction.put(task)
+            transaction.put(board)
         return True
 
 
@@ -279,8 +277,7 @@ def addTask():
 
 def putTaskDone(task):
     task.update({
-        'done': True,
-        'done-date': datetime.today(),
+        'done':  datetime.today()
     })
     datastore_client.put(task)
 
@@ -311,8 +308,7 @@ def checkTask():
 
 def putTaskUndone(task):
     task.update({
-        'done': False,
-        'done-date': None,
+        'done':  None,
     })
     datastore_client.put(task)
 
@@ -341,32 +337,48 @@ def uncheckTask():
     return redirect(url_for('.board', id=boardId, message=message, status=status))
 
 
-def updateTaskInfo(id, assignedUser, dueDate):
-    entity_key = datastore_client.key('Task', id)
-    entity = datastore_client.get(entity_key)
-    entity.update({
+def updateTaskInfo(task, assignedUser, dueDate):
+    task.update({
         'assigned': assignedUser,
         'due': dueDate,
     })
-    datastore_client.put(entity)
+    datastore_client.put(task)
 
 
-def updateTaskId(boardId, name, assignedUser, dueDate):
+def updateTaskId(boardId, name, assignedUser, dueDate, taskIndex):
     id = hashlib.md5((name + str(boardId)).encode()).hexdigest()
-    entity_key = datastore_client.key('Task', id)
-    if datastore_client.get(entity_key):
-        return None
-    entity = datastore.Entity(entity_key)
-    entity.update({
-        'name': name,
-        'assigned': assignedUser,
-        'due': dueDate,
-        'board': boardId,
-        'done': False,
-        'done-date': None
-    })
-    datastore_client.put(entity)
-    return id
+    new_task_key = datastore_client.key('Task', id)
+    if datastore_client.get(new_task_key):
+        return False
+    else:
+        # create new task entity
+        new_task = datastore.Entity(new_task_key)
+        new_task.update({
+            'name': name,
+            'assigned': assignedUser,
+            'due': dueDate,
+            'board': boardId,
+            'done':  None
+        })
+
+        # delete old task entity
+        board = getBoardById(boardId)
+        taskListKeys = board['tasks']
+        oldTaskKey = datastore_client.key('Task', taskListKeys[taskIndex])
+        del taskListKeys[taskIndex]
+        # add task id to board
+        taskListKeys.append(id)
+        board.update({
+            'tasks': taskListKeys
+        })
+        # update datastore
+        transaction = datastore_client.transaction()
+        with transaction:
+            transaction.put(new_task)
+            transaction.delete(oldTaskKey)
+            transaction.put(board)
+
+        return True
 
 
 @app.route('/update_task', methods=['POST'])
@@ -376,6 +388,7 @@ def updateTask():
     status = None
     taskId = request.form['task-id']
     boardId = int(request.form['board-id'])
+    print(boardId)
     if id_token:
         try:
             task = getTaskById(taskId)
@@ -384,19 +397,15 @@ def updateTask():
                 if not assignedUser:
                     assignedUser = "unassigned"
                 if request.form['update-task-name'] == task['name']:
-                    updateTaskInfo(taskId, assignedUser,  datetime.strptime(
+                    updateTaskInfo(task, assignedUser,  datetime.strptime(
                         request.form['update-due-date'], '%Y-%m-%d'))
                     message = "Task has been updated !"
                     status = "success"
                 else:
-                    taskId = updateTaskId(boardId, request.form['update-task-name'], assignedUser,
-                                          datetime.strptime(request.form['update-due-date'], '%Y-%m-%d'))
-                    if taskId:
-                        deleteTask(boardId,
-                                   int(request.form['task-index']))
-
-                        addTaskToBoard(boardId, taskId)
-                        message = "Vehicle has been updated !"
+                    isUpdate = updateTaskId(boardId, request.form['update-task-name'], assignedUser,
+                                            datetime.strptime(request.form['update-due-date'], '%Y-%m-%d'), int(request.form['task-index']))
+                    if isUpdate:
+                        message = "Task has been updated !"
                         status = "success"
                     else:
                         message = "The information you wish to add corresponds to an existing task"
@@ -418,12 +427,14 @@ def deleteTask(boardId, taskIndex):
     board = getBoardById(boardId)
     taskListKeys = board['tasks']
     taskKey = datastore_client.key('Task', taskListKeys[taskIndex])
-    datastore_client.delete(taskKey)
     del taskListKeys[taskIndex]
     board.update({
         'tasks': taskListKeys
     })
-    datastore_client.put(board)
+    transaction = datastore_client.transaction()
+    with transaction:
+        transaction.delete(taskKey)
+        transaction.put(board)
 
 
 @app.route('/delete_task', methods=['POST'])
@@ -479,7 +490,16 @@ def renameBoard():
     return redirect(url_for('.board', id=boardId, message=message, status=status))
 
 
-def deleteBoardFromUser(email, boardId):
+def deleteUserFromBoard(boardId, email, index):
+    # delete user from board
+    board = getBoardById(boardId)
+    userListKeys = board['users']
+    del userListKeys[index]
+    board.update({
+        'users': userListKeys
+    })
+
+    # delete board from user
     user = getUserByEmail(email)
     boardList = user['boards']
     index = boardList.index(boardId)
@@ -487,25 +507,18 @@ def deleteBoardFromUser(email, boardId):
     user.update({
         'boards': boardList
     })
-    datastore_client.put(user)
-
-
-def deleteUserFromBoard(boardId, email, index):
-    board = getBoardById(boardId)
-    userListKeys = board['users']
-    del userListKeys[index]
-    board.update({
-        'users': userListKeys
-    })
-    datastore_client.put(board)
     tasks = getTasksFromBoard(board)
-    for task in tasks:
-        if task['assigned'] == email:
-            task.update({
-                'assigned': 'unassigned',
-                'to-assign': True,
-            })
-            datastore_client.put(task)
+    transaction = datastore_client.transaction()
+    with transaction:
+        transaction.put(board)
+        transaction.put(user)
+        for task in tasks:
+            if task['assigned'] == email:
+                task.update({
+                    'assigned': 'unassigned',
+                    'to-assign': True,
+                })
+                transaction.put(task)
 
 
 @app.route('/delete_user', methods=['POST'])
@@ -517,8 +530,6 @@ def removeUserFromBoard():
         try:
             deleteUserFromBoard(
                 int(request.form['board-id']), request.form['user-email'], int(request.form['user-index']))
-            deleteBoardFromUser(
-                request.form['user-email'], int(request.form['board-id']))
             message = "The user has been removed !"
             status = "success"
         except ValueError as exc:
@@ -528,9 +539,19 @@ def removeUserFromBoard():
     return redirect(url_for('.board', id=int(request.form['board-id']), message=message, status=status))
 
 
-def deleteBoard(id):
+def deleteBoard(id, email):
     boardKey = datastore_client.key('Board', id)
-    datastore_client.delete(boardKey)
+    user = getUserByEmail(email)
+    boardList = user['boards']
+    index = boardList.index(id)
+    del boardList[index]
+    user.update({
+        'boards': boardList
+    })
+    transaction = datastore_client.transaction()
+    with transaction:
+        transaction.delete(boardKey)
+        transaction.put(user)
 
 
 @app.route('/delete_board', methods=['POST'])
@@ -541,9 +562,7 @@ def removeBoard():
     if id_token:
         try:
             deleteBoard(
-                int(request.form['board-id']))
-            deleteBoardFromUser(
-                request.form['user-email'], int(request.form['board-id']))
+                int(request.form['board-id']), request.form['user-email'])
             message = "The board has been removed !"
             status = "success"
         except ValueError as exc:
