@@ -48,11 +48,11 @@ def root():
             status = "error"
     else:
         return render_template('login.html')
-    return render_template('index.html', userData=userData, boards=boards, message=message, status=status)
+    return render_template('index.html', user_data=userData, boards=boards, message=message, status=status)
 
 
-def getBoardsFromUser(userData):
-    boardIds = userData['boards']
+def getBoardsFromUser(user):
+    boardIds = user['boards']
     boardKeys = []
     for i in range(len(boardIds)):
         boardKeys.append(datastoreClient.key('Board', boardIds[i]))
@@ -88,7 +88,7 @@ def myAccount():
     else:
         return render_template('login.html', message="You can't access this page without being logged in", status="error")
 
-    return render_template('my_account.html', userData=userData, boards=boards, message=message, status=status)
+    return render_template('my_account.html', user_data=userData, boards=boards, message=message, status=status)
 
 
 def createBoard(name, email):
@@ -116,7 +116,7 @@ def createBoard(name, email):
 
 
 @app.route('/put_board', methods=['POST'])
-def putboard():
+def putBoard():
     idToken = request.cookies.get("token")
     message = None
     status = None
@@ -176,7 +176,7 @@ def board(id):
     else:
         return render_template('login.html', message="You can't access this page without being logged in", status="error")
 
-    return render_template('board.html', userData=userData, boards=boards, board=board, tasks=tasks, today=datetime.today().strftime('%Y-%m-%d'), message=message, status=status)
+    return render_template('board.html', user_data=userData, boards=boards, board=board, tasks=tasks, today=datetime.today().strftime('%Y-%m-%d'), message=message, status=status)
 
 
 def addUserInBoard(board, user):
@@ -234,7 +234,6 @@ def createTask(name, assignedUser, dueDate, boardId):
             'name': name,
             'assigned': assignedUser,
             'due': dueDate,
-            'board': boardId,
             'done': None
         })
         # add task id to board
@@ -348,7 +347,6 @@ def updateTaskId(boardId, name, assignedUser, dueDate, taskIndex):
             'name': name,
             'assigned': assignedUser,
             'due': dueDate,
-            'board': boardId,
             'done':  None
         })
 
@@ -356,9 +354,8 @@ def updateTaskId(boardId, name, assignedUser, dueDate, taskIndex):
         board = getBoardById(boardId)
         taskListKeys = board['tasks']
         oldTaskKey = datastoreClient.key('Task', taskListKeys[taskIndex])
-        del taskListKeys[taskIndex]
-        # add task id to board
-        taskListKeys.append(id)
+        # update task id to board
+        taskListKeys[taskIndex] = id
         board.update({
             'tasks': taskListKeys
         })
@@ -445,13 +442,6 @@ def removeTask():
     return redirect(url_for('.board', id=int(request.form['board-id']), message=message, status=status))
 
 
-def updateBoardName(board, name):
-    board.update({
-        'name': name
-    })
-    datastoreClient.put(board)
-
-
 @app.route('/rename_board', methods=['POST'])
 def renameBoard():
     idToken = request.cookies.get("token")
@@ -464,7 +454,10 @@ def renameBoard():
             board = getBoardById(boardId)
             if board:
                 if boardName != board['name']:
-                    updateBoardName(board, boardName)
+                    board.update({
+                        'name': boardName
+                    })
+                    datastoreClient.put(board)
                     message = "Board has been renamed !"
                     status = "success"
             else:
